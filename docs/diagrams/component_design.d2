@@ -1,0 +1,20 @@
+Client -> TCP Socket: HTTP Request
+Coordinator -> HTTP Parser -> Command Parser: Calls
+Command Parser -> Command: Parses
+
+
+TCP Socket --> Client: HTTP Response
+TCP Socket --> Main Process: Notifies
+Main Process -> Coordinator: Notifies
+
+Command -> Command Parser -> HTTP Parser -> Coordinator: returns Command
+Coordinator --> Dispatcher: Command 
+Dispatcher --> Queue: enqueues Command
+Queue --> Executor: notifies with Command
+Executor --> In Memory Data Structure: Access
+Executor --> Coordinator: return result
+
+Coordinator -> ErrorHandler: Error Handling
+ErrorHandler -> ResponseStreamer
+Coordinator -> ResponseStreamer: Produces
+ResponseStreamer -> TCP Socket: HTTP Response
