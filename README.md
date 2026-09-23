@@ -17,3 +17,7 @@ And serve it over HTTP. Refer to the diagrams for more information.
 # Using d2
 
 This project uses d2 for diagrams (https://www.d2lang.com/tour/install/)
+
+# Using the Taskfile.yml
+
+This project uses Taskfile to manage common tasks, see more info at: https://taskfile.dev
