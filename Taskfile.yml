@@ -19,4 +19,4 @@ tasks:
     desc: Watch src directory, rebuilds and re-executes binary
     cmds:
       - | 
-        zsh -c 'fswatch -0 src | while read -d "" event; do cargo run; done'
+        zsh -c 'fswatch -0 src | while read -d "" event; do; cargo fmt; cargo test; cargo run; done'
