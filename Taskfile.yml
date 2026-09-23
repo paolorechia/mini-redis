@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  GREETING: Hello, world!
+
+tasks:
+  default:
+    desc: Print a greeting message
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  d2_watch:
+    d2 --watch docs/diagrams/high_level_design.d2
+
+  watch:
+    desc: Watch src directory, rebuilds and re-executes binary
+    cmds:
+      - | 
+        zsh -c 'fswatch -0 src | while read -d "" event; do cargo run; done'
