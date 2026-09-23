@@ -1,9 +1,9 @@
-Client -> TCP Socket: HTTP Request
-Coordinator -> HTTP Parser -> Command Parser: Calls
+Client -> TCP Socket: Connection/Stream
+Coordinator -> Command Parser: Passes Stream
 Command Parser -> Command: Parses
 
 
-TCP Socket --> Client: HTTP Response
+TCP Socket --> Client: StreamingResponse
 TCP Socket --> Main Process: Notifies
 Main Process -> Coordinator: Notifies
 

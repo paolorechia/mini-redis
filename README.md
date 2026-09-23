@@ -21,3 +21,16 @@ This project uses d2 for diagrams (https://www.d2lang.com/tour/install/).
 # Using the Taskfile.yml
 
 This project uses Taskfile to manage common tasks, see more info at: https://taskfile.dev.
+
+
+# Serialization Protocol
+
+The protocol is dead simple. A new message frame begins with:
+
+#####START#####
+
+Ends with:
+
+#####END#####
+
+And has a maximum limit of 1024 bytes, including the above start/end markers
