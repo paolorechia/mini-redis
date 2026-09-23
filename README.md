@@ -12,3 +12,8 @@ DELETE key
 EXISTS key
 
 And serve it over HTTP. Refer to the diagrams for more information.
+
+
+# Using d2
+
+This project uses d2 for diagrams (https://www.d2lang.com/tour/install/)
