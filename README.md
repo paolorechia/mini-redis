@@ -11,7 +11,7 @@ GET key
 DELETE key
 EXISTS key
 
-And serve it over HTTP. Refer to the diagrams for more information.
+And serve it over HTTP. Refer to the diagrams for more information. We'll only accept strings, both for keys and values.
 
 
 # Using d2
