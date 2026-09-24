@@ -38,9 +38,36 @@ impl<T: AsyncRead + AsyncWrite + Debug + Unpin> FrameController<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::pin::Pin;
+    use std::task::{Context, Poll};
+    use tokio::io::Error;
+
+    struct FakeTcpStream {}
+    impl AsyncWrite for FakeTcpStream {
+        fn poll_write(
+            self: Pin<&mut Self>,
+            _cx: &mut Context<'_>,
+            buf: &[u8],
+        ) -> Poll<Result<usize, Error>> {
+            return Poll::Ready(Ok(buf.len()));
+        }
+        fn poll_flush(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Result<(), Error>> {
+            return Poll::Ready(Ok(()));
+        }
+        fn poll_shutdown(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Result<(), Error>> {
+            return Poll::Ready(Ok(()));
+        }
+    }
+    // impl AsyncRead for FakeTcpStream {
+    //     fn poll_read(
+    //         self: Pin<&mut Self>,
+    //         cx: &mut Context<'_>,
+    //         buf: &mut ReadBuf<'_>,
+    //     ) -> Poll<Result<()>> {
+    //         return Poll::Ready(Ok);
+    //     }
+    // }
 
     #[test]
-    fn test_example() {
-        // FrameController
-    }
+    fn test_example() {}
 }
