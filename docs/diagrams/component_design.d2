@@ -1,20 +1,28 @@
+Coordinator -> ConnectionManager: Inits
 Client -> TCP Socket: Connection/Stream
-Coordinator -> Command Parser: Passes Stream
-Command Parser -> Command: Parses
-
+ConnectionManager -> TCP Socket
+ConnectionManager -> FrameController: ConnectionStream
+FrameController -> ConnectionManager: Frame
+FrameController -> FrameQueue: Enqueue Frame
 
 TCP Socket --> Client: StreamingResponse
-TCP Socket --> Main Process: Notifies
-Main Process -> Coordinator: Notifies
+Main Process -> Coordinator: Inits
 
-Command -> Command Parser -> HTTP Parser -> Coordinator: returns Command
-Coordinator --> Dispatcher: Command 
-Dispatcher --> Queue: enqueues Command
+
+Command Parser -> Command: Frame
+Command Parser -> Coordinator: Command
+
+Command -> Command Parser
 Queue --> Executor: notifies with Command
 Executor --> In Memory Data Structure: Access
 Executor --> Coordinator: return result
 
+Coordinator -> FrameQueue: Dequeue
+Coordinator -> Command Parser: Frame
+Coordinator --> Dispatcher: Command 
 Coordinator -> ErrorHandler: Error Handling
+
+
 ErrorHandler -> ResponseStreamer
-Coordinator -> ResponseStreamer: Produces
-ResponseStreamer -> TCP Socket: HTTP Response
+
+Dispatcher --> Queue: enqueues Command
