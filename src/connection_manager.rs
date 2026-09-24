@@ -10,7 +10,7 @@ impl ConnectionManager {
     pub async fn init(endpoint: String) -> Result<ConnectionManager, Box<dyn std::error::Error>> {
         return Ok(ConnectionManager {
             listener: TcpListener::bind(&endpoint).await?,
-            endpoint: endpoint,
+            endpoint,
         });
     }
     pub async fn serve(&mut self) -> Result<(), Box<dyn std::error::Error>> {

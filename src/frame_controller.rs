@@ -1,15 +1,13 @@
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpStream;
+use std::fmt::Debug;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-pub struct FrameController {
-    tcp_stream: TcpStream,
+pub struct FrameController<T: AsyncRead + AsyncWrite + Debug + Unpin> {
+    tcp_stream: T,
 }
 
-impl FrameController {
-    pub async fn init(tcp_stream: TcpStream) -> FrameController {
-        return FrameController {
-            tcp_stream: tcp_stream,
-        };
+impl<T: AsyncRead + AsyncWrite + Debug + Unpin> FrameController<T> {
+    pub async fn init(tcp_stream: T) -> FrameController<T> {
+        return FrameController { tcp_stream };
     }
 
     pub async fn control_stream(&mut self) {
@@ -34,5 +32,15 @@ impl FrameController {
                 return;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_example() {
+        // FrameController
     }
 }
