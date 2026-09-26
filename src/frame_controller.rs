@@ -1,3 +1,4 @@
+use std::cmp::min;
 use std::fmt::{self, Debug, Formatter};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, ReadBuf};
 
@@ -30,7 +31,7 @@ impl<T: AsyncRead + AsyncWrite + Debug + Unpin> FrameController<T> {
                     return;
                 }
             };
-            println!("Got: {}", n);
+            println!("Got: {}, {:?}", n, buf);
             if let Err(e) = self.tcp_stream.write_all(&buf[0..n]).await {
                 eprintln!("Failed to write socket; err = {:?}", e);
                 return;
@@ -48,7 +49,7 @@ mod tests {
 
     struct FakeTcpStream {
         fake_input_data: Vec<u8>,
-        input_current_idx: u16,
+        input_current_idx: usize,
     }
 
     impl FakeTcpStream {
@@ -78,35 +79,61 @@ mod tests {
 
     impl AsyncRead for FakeTcpStream {
         fn poll_read(
-            self: Pin<&mut Self>,
+            mut self: Pin<&mut Self>,
             _cx: &mut Context<'_>,
-            _buf: &mut ReadBuf<'_>,
+            buf: &mut ReadBuf<'_>,
         ) -> Poll<Result<(), Error>> {
-            // what should I do here
+            // ReadBuffer
+            // [FILLED / REMAINING]
+            let available_space = buf.remaining();
+
+            // Available remaining fake data to read
+            let available_data = self.fake_input_data.len() - self.input_current_idx;
+
+            // Calculate how much we can insert given available data / available space in ReadBuf
+            let slice_upper_index = self.input_current_idx + min(available_data, available_space);
+
+            // Create the slice
+            let fake_data_slice_to_append =
+                &self.fake_input_data[self.input_current_idx..slice_upper_index];
+
+            // Insert
+            buf.put_slice(fake_data_slice_to_append);
+
+            // Update cursor for next poll_read call
+            self.input_current_idx = slice_upper_index;
+
+            // Signal we're done with this Poll
             return Poll::Ready(Ok(()));
         }
     }
 
     impl Debug for FakeTcpStream {
-        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+        fn fmt(&self, _f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
             return Ok(());
         }
     }
 
-    pub async fn init_controller_with_data(data_as_string: &str) -> FrameController<FakeTcpStream> {
+    async fn init_controller_with_data(data_as_string: &str) -> FrameController<FakeTcpStream> {
         let tcp_stream = FakeTcpStream::init(data_as_string.bytes().collect()).await;
         return FrameController::init(tcp_stream).await;
     }
 
     #[tokio::test]
     async fn test_invalid_message() {
-        let frame_controller: FrameController<FakeTcpStream> =
+        let mut frame_controller: FrameController<FakeTcpStream> =
             init_controller_with_data("Hello world!").await;
+
+        frame_controller.control_stream().await;
+        assert_eq!(frame_controller.frame_queue.len(), 0);
     }
 
+    #[tokio::test]
     async fn test_hello_world_message() {
-        let frame_controller: FrameController<FakeTcpStream> = init_controller_with_data(
+        let mut frame_controller: FrameController<FakeTcpStream> = init_controller_with_data(
             "#####START#####@@@@@KEY@@@@@hello world key@@@@@VALUE@@@@@hello world value#####END#####",
         ).await;
+        frame_controller.control_stream().await;
+        assert_eq!(frame_controller.frame_queue.len(), 0);
     }
 }
