@@ -18,6 +18,14 @@ impl<T: AsyncRead + AsyncWrite + Debug + Unpin> FrameController<T> {
     pub async fn control_stream(&mut self) {
         println!("Spawning... {:?}", self.tcp_stream);
         let mut buf = [0; 64];
+        let mut num_read_bytes: u64 = 0;
+        let mut found_start_marker: bool = false;
+        let mut found_end_marker: bool = false;
+        let mut found_key_marker: bool = false;
+        let mut found_value_market: bool = false;
+        let mut command: Vec<String>;
+        let mut key: Vec<String>;
+        let mut value: Vec<String>;
 
         loop {
             let n = match self.tcp_stream.read(&mut buf).await {
@@ -32,6 +40,7 @@ impl<T: AsyncRead + AsyncWrite + Debug + Unpin> FrameController<T> {
                 }
             };
             println!("Got: {}, {:?}", n, buf);
+
             if let Err(e) = self.tcp_stream.write_all(&buf[0..n]).await {
                 eprintln!("Failed to write socket; err = {:?}", e);
                 return;
@@ -134,6 +143,6 @@ mod tests {
             "#####START#####@@@@@KEY@@@@@hello world key@@@@@VALUE@@@@@hello world value#####END#####",
         ).await;
         frame_controller.control_stream().await;
-        assert_eq!(frame_controller.frame_queue.len(), 0);
+        assert_eq!(frame_controller.frame_queue.len(), 1);
     }
 }
