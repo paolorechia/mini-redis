@@ -1,5 +1,5 @@
 use std::fmt::Debug;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, ReadBuf};
 
 pub struct FrameController<T: AsyncRead + AsyncWrite + Debug + Unpin> {
     tcp_stream: T,
@@ -42,7 +42,20 @@ mod tests {
     use std::task::{Context, Poll};
     use tokio::io::Error;
 
-    struct FakeTcpStream {}
+    struct FakeTcpStream {
+        fake_input_data: Vec<u8>,
+        input_current_idx: u16,
+    }
+
+    impl FakeTcpStream {
+        fn init(fake_input_data: Vec<u8>) -> FakeTcpStream {
+            return FakeTcpStream {
+                fake_input_data,
+                input_current_idx: 0,
+            };
+        }
+    }
+
     impl AsyncWrite for FakeTcpStream {
         fn poll_write(
             self: Pin<&mut Self>,
@@ -58,16 +71,20 @@ mod tests {
             return Poll::Ready(Ok(()));
         }
     }
-    // impl AsyncRead for FakeTcpStream {
-    //     fn poll_read(
-    //         self: Pin<&mut Self>,
-    //         cx: &mut Context<'_>,
-    //         buf: &mut ReadBuf<'_>,
-    //     ) -> Poll<Result<()>> {
-    //         return Poll::Ready(Ok);
-    //     }
-    // }
+
+    impl AsyncRead for FakeTcpStream {
+        fn poll_read(
+            self: Pin<&mut Self>,
+            _cx: &mut Context<'_>,
+            _buf: &mut ReadBuf<'_>,
+        ) -> Poll<Result<(), Error>> {
+            // what should I do here
+            return Poll::Ready(Ok(()));
+        }
+    }
 
     #[test]
-    fn test_example() {}
+    fn test_example() {
+        let tcp_stream = FakeTcpStream::init("Hello world!".bytes().collect());
+    }
 }
