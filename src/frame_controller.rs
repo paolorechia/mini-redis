@@ -3,11 +3,15 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, ReadBuf};
 
 pub struct FrameController<T: AsyncRead + AsyncWrite + Debug + Unpin> {
     tcp_stream: T,
+    frame_queue: Vec<String>,
 }
 
 impl<T: AsyncRead + AsyncWrite + Debug + Unpin> FrameController<T> {
     pub async fn init(tcp_stream: T) -> FrameController<T> {
-        return FrameController { tcp_stream };
+        return FrameController {
+            tcp_stream,
+            frame_queue: Vec::<String>::new(),
+        };
     }
 
     pub async fn control_stream(&mut self) {
@@ -48,7 +52,7 @@ mod tests {
     }
 
     impl FakeTcpStream {
-        fn init(fake_input_data: Vec<u8>) -> FakeTcpStream {
+        async fn init(fake_input_data: Vec<u8>) -> FakeTcpStream {
             return FakeTcpStream {
                 fake_input_data,
                 input_current_idx: 0,
@@ -89,9 +93,20 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_example() {
-        let tcp_stream = FakeTcpStream::init("Hello world!".bytes().collect());
-        let frame_controller = FrameController { tcp_stream };
+    pub async fn init_controller_with_data(data_as_string: &str) -> FrameController<FakeTcpStream> {
+        let tcp_stream = FakeTcpStream::init(data_as_string.bytes().collect()).await;
+        return FrameController::init(tcp_stream).await;
+    }
+
+    #[tokio::test]
+    async fn test_invalid_message() {
+        let frame_controller: FrameController<FakeTcpStream> =
+            init_controller_with_data("Hello world!").await;
+    }
+
+    async fn test_hello_world_message() {
+        let frame_controller: FrameController<FakeTcpStream> = init_controller_with_data(
+            "#####START#####@@@@@KEY@@@@@hello world key@@@@@VALUE@@@@@hello world value#####END#####",
+        ).await;
     }
 }
