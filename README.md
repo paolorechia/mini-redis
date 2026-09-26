@@ -33,4 +33,16 @@ Ends with:
 
 #####END#####
 
-And has a maximum limit of 1024 bytes, including the above start/end markers
+And has a maximum limit of 1024 bytes, including the above start/end markers.
+
+In addition, it has key and value markers:
+
+@@@@@KEY@@@@@@
+
+And @@@@@VALUE@@@@@
+
+So a full message can be written as:
+
+`#####START#####@@@@@KEY@@@@@hello world key@@@@@VALUE@@@@@hello world value#####END#####`
+
+We don't yet think about Unicode, so only ASCII characters should be used for now.

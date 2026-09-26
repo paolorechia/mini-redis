@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{self, Debug, Formatter};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, ReadBuf};
 
 pub struct FrameController<T: AsyncRead + AsyncWrite + Debug + Unpin> {
@@ -83,8 +83,15 @@ mod tests {
         }
     }
 
+    impl Debug for FakeTcpStream {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
+            return Ok(());
+        }
+    }
+
     #[test]
     fn test_example() {
         let tcp_stream = FakeTcpStream::init("Hello world!".bytes().collect());
+        let frame_controller = FrameController { tcp_stream };
     }
 }
